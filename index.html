@@ -7,10 +7,15 @@
 
   <style>
 @font-face {
+
     font-family: 'Minecraft';
-    src: url('./fonts/minecraft_font.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+    src: local('Minecraft'),
+      url('./fonts/minecraft.woff2') format('woff2'),
+      url('./fonts/minecraft.woff') format('woff'),
+      url('./fonts/minecraft_font.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
     html, body {
@@ -26,27 +31,129 @@
       letter-spacing: 1px;
     }
 
-    .dots span {
+    .hero {
+      display: inline-block;
       opacity: 0;
-      animation: blink 1.5s infinite;
+      transform: translateY(10px);
+      animation: hero-in 850ms cubic-bezier(.2,.9,.2,1) forwards;
+      animation-delay: 120ms;
+      transition: transform 360ms cubic-bezier(.2,.9,.2,1);
+      transform-origin: center center;
     }
 
-    .dots span:nth-child(1) { animation-delay: 0s; }
-    .dots span:nth-child(2) { animation-delay: 0.3s; }
-    .dots span:nth-child(3) { animation-delay: 0.6s; }
+    @keyframes hero-in {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-    @keyframes blink {
-      0%, 20% { opacity: 0; }
-      50% { opacity: 1; }
-      100% { opacity: 0; }
+    .dots {
+      display: inline-block;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    .dots span {
+      display: inline-block;
+      margin: 0 0.08rem;
+      opacity: 1;
+      transform: translateY(0);
+      animation: dot-slide 1.4s infinite cubic-bezier(.22,.68,.32,1);
+      will-change: transform, opacity;
+      font-size: 1.05em;
+    }
+
+    .dots span:nth-child(1) { animation-delay: 0ms; }
+    .dots span:nth-child(2) { animation-delay: 120ms; }
+    .dots span:nth-child(3) { animation-delay: 240ms; }
+
+    @keyframes dot-slide {
+      0% {
+        opacity: 0.0;
+        transform: translateX(-8px);
+      }
+      18% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      55% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      85% {
+        opacity: 0.0;
+        transform: translateX(12px);
+      }
+      100% {
+        opacity: 0.0;
+        transform: translateX(12px);
+      }
     }
   </style>
 </head>
 <body>
-  <div>
+  <div class="hero">
     Coming Soon<span class="dots">
       <span>.</span><span>.</span><span>.</span>
     </span>
   </div>
+  <script>
+  (function(){
+    const hero = document.querySelector('.hero');
+    if(!hero) return;
+    let state = 0; // 0 = initial, 1 = zoomed in, 2 = completed (no more toggles)
+    const targetScale = 1.12; // how much to zoom in
+
+    function applyScale(s){
+      // Keep the hero vertical position; hero-in animation leaves translateY(0)
+      hero.style.transform = `translateY(0) scale(${s})`;
+    }
+
+    // Handle ctrl+wheel zoom attempts: prevent browser zoom and implement single in/out toggle
+    function onWheel(e){
+      // Only intercept when user intends to zoom (ctrlKey often used for zooming on desktop)
+      if(!e.ctrlKey) return;
+      e.preventDefault();
+      const dirIn = e.deltaY < 0;
+      if(dirIn && state === 0){
+        applyScale(targetScale);
+        state = 1;
+      } else if(!dirIn && state === 1){
+        applyScale(1);
+        state = 2;
+      }
+      // otherwise ignore (blocking further browser zooms while leaving page scale as-is)
+    }
+
+    window.addEventListener('wheel', onWheel, {passive: false});
+
+    // Keyboard support: + to zoom in, - to zoom out
+    window.addEventListener('keydown', function(e){
+      if(e.key === '+' || e.key === '=' ){
+        if(state === 0){ applyScale(targetScale); state = 1; }
+        e.preventDefault();
+      } else if(e.key === '-'){
+        if(state === 1){ applyScale(1); state = 2; }
+        e.preventDefault();
+      }
+    });
+
+    // Double-tap on touch devices to toggle once (simple heuristic)
+    let lastTap = 0;
+    window.addEventListener('touchend', function(e){
+      const now = Date.now();
+      if(now - lastTap < 300){
+        if(state === 0){ applyScale(targetScale); state = 1; }
+        else if(state === 1){ applyScale(1); state = 2; }
+        e.preventDefault();
+      }
+      lastTap = now;
+    }, {passive:false});
+
+    // Try to block native gesture zoom on some browsers (no-op on many)
+    window.addEventListener('gesturestart', function(e){ e.preventDefault(); }, {passive:false});
+  })();
+  </script>
 </body>
 </html>
