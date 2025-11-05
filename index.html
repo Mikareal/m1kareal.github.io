@@ -18,17 +18,15 @@
   font-display: swap;
 }
 
-    /* Background video styles inserted below */
 
     .bg-video-wrapper {
       position: fixed;
-      inset: 0; /* top:0; right:0; bottom:0; left:0 */
+      inset: 0; 
       z-index: 0;
       overflow: hidden;
-      pointer-events: none; /* allow clicks through to page */
+      pointer-events: none; 
     }
 
-    /* Simpler, more reliable animated background: put the GIF on body::before so it's always behind everything */
     body::before {
       content: '';
       position: fixed;
@@ -37,26 +35,21 @@
       background-size: cover;
       background-position: center center;
       transform: scale(1.03);
-      /* reduce the blur and make the background a bit brighter so it shows through */
       filter: blur(6px) brightness(0.9);
       will-change: transform, filter;
-      z-index: -1; /* behind all page content */
+      z-index: -1;
       pointer-events: none;
     }
 
-    /* subtle overlay so foreground text remains readable */
     .bg-video__overlay {
       position: absolute;
       inset: 0;
-      /* much lighter overlay so the animated background shows through under text */
       background: linear-gradient(rgba(5,8,12,0.08), rgba(5,8,12,0.12));
       pointer-events: none;
     }
 
-  /* Ensure hero sits above the background video and is transparent so background shows through */
   .hero { position: relative; z-index: 2; background: transparent; }
 
-    /* Honor users who prefer reduced motion: pause video and remove transforms */
     @media (prefers-reduced-motion: reduce) {
       .bg-video__media { filter: none; transform: translate(-50%, -50%) scale(1); }
       .bg-video-wrapper { display: none; }
@@ -137,7 +130,6 @@
   </style>
 </head>
 <body>
-  <!-- Background video: replace the src attributes with your video files. Poster is a fallback image. -->
   <div class="bg-video-wrapper" aria-hidden="true">
     <div class="bg-video__overlay"></div>
   </div>
@@ -151,17 +143,14 @@
   (function(){
     const hero = document.querySelector('.hero');
     if(!hero) return;
-    let state = 0; // 0 = initial, 1 = zoomed in, 2 = completed (no more toggles)
-    const targetScale = 1.12; // how much to zoom in
+    let state = 0;
+    const targetScale = 1.12;
 
     function applyScale(s){
-      // Keep the hero vertical position; hero-in animation leaves translateY(0)
       hero.style.transform = `translateY(0) scale(${s})`;
     }
 
-    // Handle ctrl+wheel zoom attempts: prevent browser zoom and implement single in/out toggle
     function onWheel(e){
-      // Only intercept when user intends to zoom (ctrlKey often used for zooming on desktop)
       if(!e.ctrlKey) return;
       e.preventDefault();
       const dirIn = e.deltaY < 0;
@@ -172,12 +161,10 @@
         applyScale(1);
         state = 2;
       }
-      // otherwise ignore (blocking further browser zooms while leaving page scale as-is)
     }
 
     window.addEventListener('wheel', onWheel, {passive: false});
 
-    // Keyboard support: + to zoom in, - to zoom out
     window.addEventListener('keydown', function(e){
       if(e.key === '+' || e.key === '=' ){
         if(state === 0){ applyScale(targetScale); state = 1; }
@@ -188,7 +175,6 @@
       }
     });
 
-    // Double-tap on touch devices to toggle once (simple heuristic)
     let lastTap = 0;
     window.addEventListener('touchend', function(e){
       const now = Date.now();
@@ -200,7 +186,6 @@
       lastTap = now;
     }, {passive:false});
 
-    // Try to block native gesture zoom on some browsers (no-op on many)
     window.addEventListener('gesturestart', function(e){ e.preventDefault(); }, {passive:false});
   })();
   </script>
