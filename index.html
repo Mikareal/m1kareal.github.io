@@ -18,13 +18,57 @@
   font-display: swap;
 }
 
+    /* Background video styles inserted below */
+
+    .bg-video-wrapper {
+      position: fixed;
+      inset: 0; /* top:0; right:0; bottom:0; left:0 */
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none; /* allow clicks through to page */
+    }
+
+    /* Simpler, more reliable animated background: put the GIF on body::before so it's always behind everything */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url('./media/bg.gif');
+      background-size: cover;
+      background-position: center center;
+      transform: scale(1.03);
+      /* reduce the blur and make the background a bit brighter so it shows through */
+      filter: blur(6px) brightness(0.9);
+      will-change: transform, filter;
+      z-index: -1; /* behind all page content */
+      pointer-events: none;
+    }
+
+    /* subtle overlay so foreground text remains readable */
+    .bg-video__overlay {
+      position: absolute;
+      inset: 0;
+      /* much lighter overlay so the animated background shows through under text */
+      background: linear-gradient(rgba(5,8,12,0.08), rgba(5,8,12,0.12));
+      pointer-events: none;
+    }
+
+  /* Ensure hero sits above the background video and is transparent so background shows through */
+  .hero { position: relative; z-index: 2; background: transparent; }
+
+    /* Honor users who prefer reduced motion: pause video and remove transforms */
+    @media (prefers-reduced-motion: reduce) {
+      .bg-video__media { filter: none; transform: translate(-50%, -50%) scale(1); }
+      .bg-video-wrapper { display: none; }
+    }
+
     html, body {
       height: 100%;
       margin: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: #0d1117;
+      background-color: #0d111700;
       color: #f0f6fc;
       font-family: 'Minecraft', sans-serif;
       font-size: 2rem;
@@ -93,6 +137,11 @@
   </style>
 </head>
 <body>
+  <!-- Background video: replace the src attributes with your video files. Poster is a fallback image. -->
+  <div class="bg-video-wrapper" aria-hidden="true">
+    <div class="bg-video__overlay"></div>
+  </div>
+  
   <div class="hero">
     Coming Soon<span class="dots">
       <span>.</span><span>.</span><span>.</span>
@@ -155,5 +204,7 @@
     window.addEventListener('gesturestart', function(e){ e.preventDefault(); }, {passive:false});
   })();
   </script>
+  
+  
 </body>
 </html>
